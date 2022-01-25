@@ -1,20 +1,50 @@
-let elementParent = document.getElementById("items");
+import { getData, RenderHTML } from "./get_json.js";
 
-let request = new XMLHttpRequest();
-request.open("GET", "/api/products");
-request.responseType = "json";
+let item = document.getElementById("items");
 
-request.onload = ()=>{
-    let kanap = request.response;
-    for(let i = 0; i < 7; i++){
-        elementParent.innerHTML += ` <a href="./product.html?id=${JSON.stringify(kanap[i]._id).replace(/\"/g, "")}">
-                                        <article>
-                                            <img src=${JSON.stringify(kanap[i].imageUrl)} alt=${JSON.stringify(kanap[i].imageUrl)}>
-                                            <h3 class="productName">${JSON.stringify(kanap[i].name).replace(/\"/g, "")}</h3>
-                                            <p class="productDescription">${JSON.stringify(kanap[i].description).replace(/\"/g, "")}</p>
-                                        </article>
-                                    </a>`;
+let a = [];
+    let article = [];
+        let img = [];
+        let h3 = [];
+        let p = [];
+getData( (data) => {
+    for(let i = 0; i < data.length; i++){
+
+        let elem = {
+            elementType : 'a',
+            href : "./product.html?id="+data[i]._id,
+            children : [{
+                elementType : 'article',
+                children : [
+                    {
+                        elementType : 'img',
+                        src : data[i].imageUrl,
+                        alt : data[i].altTxt,
+                    },
+                    {
+                        elementType : 'h3',
+                        class : 'productName',
+                        textContent : data[i].name
+                    },
+                    {
+                        elementType : 'p',
+                        class : 'productDescription',
+                        textContent : data[i].description
+                    }
+                ]
+            }]
+        }
+        item.appendChild(RenderHTML(elem));
     }
-}
+})
 
-request.send();
+
+/*
+    <a href="./product.html?id=42">
+        <article>
+            <img src=".../product01.jpg" alt="Lorem ipsum dolor sit amet, Kanap name1">
+            <h3 class="productName">Kanap name1</h3>
+            <p class="productDescription">Dis enim malesuada risus sapien gravida nulla nisl arcu. Dis enim malesuada risus sapien gravida nulla nisl arcu.</p>
+        </article>
+    </a>
+*/
