@@ -1,31 +1,27 @@
 import { getData } from "./get_json.js";
 
 getData( (data) => {
-
-	let id = new URLSearchParams(window.location.search).get("id");
-
 	// get element will be load
+	let page_title = document.querySelector("title");
 	let item__img = document.querySelector(".item__img");
 	let title = document.getElementById("title");
 	let price = document.getElementById("price");
 	let description = document.getElementById("description");
 	let colors = document.getElementById("colors");
-
-	// get current kanape by ID (from url search param)
-	let currentKanap = data.find( kanap => kanap._id == id );
 	
 	// creation of element who will be load
 	let img = document.createElement("img");
-	img.src = currentKanap.imageUrl;
-	img.alt = currentKanap.altTxt;
+	img.src = data.imageUrl;
+	img.alt = data.altTxt;
 	item__img.appendChild(img);
-		
-	title.textContent = currentKanap.name;
-	price.textContent = currentKanap.price;
-	description.textContent = currentKanap.description;
+	
+	page_title.textContent = data.name;
+	title.textContent = data.name;
+	price.textContent = data.price;
+	description.textContent = data.description;
 	
 	// load color option
-	currentKanap.colors.map(color => {
+	data.colors.map(color => {
 		let opt = document.createElement('option');
 		opt.value = color;
 		opt.textContent = color;
@@ -39,20 +35,23 @@ getData( (data) => {
 	addToCart.addEventListener("click", ()=>{
 
 		// display and basket system
+		let id = new URLSearchParams(window.location.search).get("id");
 		let opt = colors.options[colors.selectedIndex].value;
 		let qty = +quantity.value;
 
 		if(qty != 0 && opt != ""){
 			let ls = localStorage.getItem("basket");
-			if (ls){
+			let confirmation = confirm("Ajouter "+data.name+" ("+opt+'('+qty+'))');
+			if (ls && confirmation){
 				let basket = JSON.parse(ls);
 				let product = basket.find( product => product.id==id && product.option==opt);
+
 				if (product)
 					product.quantity += +qty;
 				else
 					basket.push({id : id, option:opt, quantity:qty});
-
 				localStorage.setItem("basket",JSON.stringify(basket));
+				window.location("../html/cart.html")
 
 			}else{
 				localStorage.setItem("basket",JSON.stringify([{id:id, option:opt, quantity:qty}]));
@@ -70,4 +69,4 @@ getData( (data) => {
 			], {duration: 300});
 		}
 	});
-})
+}, new URLSearchParams(window.location.search).get("id"))

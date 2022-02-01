@@ -1,22 +1,7 @@
-const getFetch = (callback)=>{
-    fetch("http://localhost:3000/api/products")
-    .then(reponse => reponse.json())
-    .then(data => callback(data));
-}
-
-
-function getData(cb){
-    let ls = localStorage.getItem("database");
-    let data = null;
-    if (ls){
-        data = JSON.parse(ls);
-        cb(data);
-    }else{
-        getFetch( (res )=> {
-            localStorage.setItem("database", JSON.stringify(res))
-            cb(res);
-        });
-    }
+function getData(cb, id = ""){
+    window.onload = fetch("http://localhost:3000/api/products/"+id)
+        .then(reponse => reponse.json())
+        .then(data => cb(data));
 }
 
 const createElement = (type, classlist, id, attributes, parent = null)=>{

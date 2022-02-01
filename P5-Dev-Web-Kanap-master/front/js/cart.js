@@ -1,12 +1,12 @@
 import { getData, RenderHTML } from "./get_json.js";
 
-var UpdateQuantity = ()=>{
-    console.log('l');
-};
-
 function Run(){
 
     getData( (data) => {
+
+        let Tqty = 0;
+        let Tprice = 0;
+
         let cart__items = document.getElementById("cart__items");
 
         let ls = localStorage.getItem("basket");
@@ -22,6 +22,9 @@ function Run(){
 
                 let currentKanap = data.find( kanap => kanap._id == id );
                 
+                Tqty += parseInt(qty);
+                Tprice += parseInt(currentKanap.price*qty);
+
                 let cartItem = {
 
                     elementType : "article",
@@ -79,12 +82,12 @@ function Run(){
                                                 {
                                                     elementType : "input",
                                                     class : 'itemQuantity',
+                                                    id: "itemQuantity"+id+":"+qty+":"+opt,
                                                     type:"number",
                                                     name:"itemQuantity",
                                                     min:'1',
                                                     max:'100',
                                                     value:qty,
-                                                    onchange : "UpdateQuantity()"
                                                 }
                                             ]
                                         },
@@ -95,6 +98,7 @@ function Run(){
                                                 {
                                                     elementType : "p",
                                                     class : "deleteItem",
+                                                    id: "deleteItem"+id+":"+qty+":"+opt,
                                                     textContent : "Supprimer"
                                                 }
                                             ]
@@ -106,18 +110,60 @@ function Run(){
                     ]
                 };
                 cart__items.appendChild(RenderHTML(cartItem));
-                UpdateQuantity(qty);
+                
+                let itemQuantity = document.getElementById("itemQuantity"+id+":"+qty+":"+opt);
+                let deleteItem = document.getElementById("deleteItem"+id+":"+qty+":"+opt);
+
+                itemQuantity.onchange = ()=>{
+                    basketProduct.quantity = itemQuantity.value;
+                    localStorage.setItem("basket", JSON.stringify(basket));
+                    window.location.reload();
+                }
+                deleteItem.onclick = ()=>{
+                    let a = basket.find(k => k.id == id && k.option == opt)
+                    basket.pop(a);
+                    console.log(basket);
+                    localStorage.setItem("basket", JSON.stringify(basket));
+                    window.location.reload();
+                }
             }
+            document.getElementById('totalQuantity').textContent = Tqty;
+            document.getElementById('totalPrice').textContent = Tprice;
         }
     })
+    let order = document.getElementById("order");
+    order.onsubmit = ()=>{
+        let inputFirstName = document.getElementById("firstName");
+        let inputLastName = document.getElementById("lastName");
+        let inputAddress = document.getElementById("address");
+        let inputCity = document.getElementById("city");
+        let inputEmail = document.getElementById("email");
+        
+        validateName(id, idErrorMsg, cb);
+
+        fetch("http://localhost:3000/order", {
+            method: "POST",
+            headers: {
+                "Accept": "application/json",
+                "Content-Type": "application/json"
+            },
+            body:{
+                contact:{
+                    firstName: inputFirstName.value,
+                    lastName: inputLastName.value,
+                    address: inputAddress.value,
+                    city: inputCity.value,
+                    email: inputEmail.value
+                },
+                products: basket
+            }
+        });
+    }
 }
 
-
-
-/*
-<span id="totalQuantity"><!-- 2 --></span>
-<span id="totalPrice"><!-- 84,00 --></span>
-<p id="firstNameErrorMsg"><!-- ci est un message d'erreur --></p>
-*/
+const validateName = (id, idErrorMsg, cb)=>{
+    let elem = document.getElementById(id);
+    let elemErrorMsg = document.getElementById(idErrorMsg);
+}
 
 Run();
