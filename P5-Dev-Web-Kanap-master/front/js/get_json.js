@@ -4,22 +4,6 @@ function getData(cb, id = ""){
         .then(data => cb(data));
 }
 
-const createElement = (type, classlist, id, attributes, parent = null)=>{
-    let elem = document.createElement(type);
-    if (classlist) classlist.split(' ').map(c=>elem.classList.add(c));
-    if (id && typeof id == 'string' && id.length > 0) elem.id = id;
-
-    if (attributes){
-        Object.keys(attributes).map(k=>{if(k == "textContent") elem.textContent = attributes[k]; else elem.setAttribute(k, attributes[k])});
-    }
-
-    if (parent) parent.appendChild(elem);
-    return elem;
-}
-
-/** RenderHTML
- * @param {json} e html as json formated element
- */
 const RenderHTML = (e) => {
     let elem = document.createElement(e.elementType || "div");
 

@@ -2,11 +2,6 @@ import { getData, RenderHTML } from "./get_json.js";
 
 let item = document.getElementById("items");
 
-let a = [];
-    let article = [];
-        let img = [];
-        let h3 = [];
-        let p = [];
 getData( (data) => {
     for(let i = 0; i < data.length; i++){
 

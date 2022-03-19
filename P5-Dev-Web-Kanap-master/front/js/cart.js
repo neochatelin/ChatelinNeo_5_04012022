@@ -115,14 +115,18 @@ function Run(){
                 let deleteItem = document.getElementById("deleteItem"+id+":"+qty+":"+opt);
 
                 itemQuantity.onchange = ()=>{
+                    if(itemQuantity.value <= 0){
+                        itemQuantity.value = 1;
+                        localStorage.setItem("basket", JSON.stringify(basket));
+                        window.location.reload();
+                    }
                     basketProduct.quantity = itemQuantity.value;
                     localStorage.setItem("basket", JSON.stringify(basket));
                     window.location.reload();
                 }
                 deleteItem.onclick = ()=>{
                     let a = basket.find(k => k.id == id && k.option == opt)
-                    basket.pop(a);
-                    console.log(basket);
+                    basket.splice(basket.indexOf(basket.find(k => k.id == id && k.option == opt)), 1);
                     localStorage.setItem("basket", JSON.stringify(basket));
                     window.location.reload();
                 }
@@ -131,39 +135,98 @@ function Run(){
             document.getElementById('totalPrice').textContent = Tprice;
         }
     })
-    let order = document.getElementById("order");
-    order.onsubmit = ()=>{
-        let inputFirstName = document.getElementById("firstName");
-        let inputLastName = document.getElementById("lastName");
-        let inputAddress = document.getElementById("address");
-        let inputCity = document.getElementById("city");
-        let inputEmail = document.getElementById("email");
-        
-        validateName(id, idErrorMsg, cb);
-
-        fetch("http://localhost:3000/order", {
-            method: "POST",
-            headers: {
-                "Accept": "application/json",
-                "Content-Type": "application/json"
-            },
-            body:{
-                contact:{
-                    firstName: inputFirstName.value,
-                    lastName: inputLastName.value,
-                    address: inputAddress.value,
-                    city: inputCity.value,
-                    email: inputEmail.value
-                },
-                products: basket
-            }
-        });
-    }
 }
 
-const validateName = (id, idErrorMsg, cb)=>{
+const validateName = (id, msg)=>{
     let elem = document.getElementById(id);
-    let elemErrorMsg = document.getElementById(idErrorMsg);
+    let elemErrorMsg = document.getElementById(id+"ErrorMsg");
+    elemErrorMsg.textContent = '';
+    switch (id) {
+        case 'firstName':
+        case 'lastName':
+        case 'city':
+            if(!elem.value.match(/^[a-z ,.'-]+$/i)){
+                elemErrorMsg.textContent = msg;
+                return 1;
+            }
+            break;
+        case 'address':
+            if(!elem.value.match(/^[0-9]{1,3}(?:(?:[,. ]){1}[-a-zA-Zàâäéèêëïîôöùûüç]+)+/i)){
+                elemErrorMsg.textContent = msg;
+                return 1;
+            }
+            break;
+        case 'email':
+            if(!elem.value.match(/^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/)){
+                elemErrorMsg.textContent = msg;
+                return 1;
+            }
+            break;
+        default:
+            break;
+    }
+    return 0;
+}
+
+if(window.location.pathname == "/cart.html"){
+    let order = document.getElementsByClassName("cart__order__form");
+    
+    let basket = JSON.parse(localStorage.getItem("basket"));
+    
+    order[0].onchange = ()=>{
+        validateName("firstName", "Prénom invalide");
+        validateName("lastName", "Nom invalide");
+        validateName("address", "Adresse invalide");
+        validateName("city", "Ville invalide");
+        validateName("email", "Email invalide");
+    }
+        
+    order[0][5].onclick = ()=>{
+        if(
+            validateName("firstName", "Prénom invalide")+
+            validateName("lastName", "Nom invalide")+
+            validateName("address", "Adresse invalide")+
+            validateName("city", "Ville invalide")+
+            validateName("email", "Email invalide") === 0){
+            let inputFirstName = document.getElementById("firstName");
+            let inputLastName = document.getElementById("lastName");
+            let inputAddress = document.getElementById("address");
+            let inputCity = document.getElementById("city");
+            let inputEmail = document.getElementById("email");
+            
+            fetch("http://localhost:3000/api/products/order", {
+                method: "POST",
+                body: JSON.stringify({
+                    contact:{
+                        firstName: inputFirstName.value,
+                        lastName: inputLastName.value,
+                        address: inputAddress.value,
+                        city: inputCity.value,
+                        email: inputEmail.value
+                    },
+                    products: basket
+                }),
+                headers: {
+                    "Accept": "application/json",
+                    "Content-Type": "application/json"
+                }
+            })
+            .then(response => console.log(response.json()))
+            .then((data) => {
+                console.log(data);
+                localStorage.clear();
+                localStorage.setItem("orderId", data);
+                window.location.href = "confirmation.html"
+            })
+            .catch((err) => {
+                console.log(err);
+            });
+        }
+    }
+}else{
+    let orderIdFeld = document.getElementById("orderId");
+    let orderId = localStorage.getItem("orderId");
+    orderIdFeld.textContent = orderId;
 }
 
 Run();
