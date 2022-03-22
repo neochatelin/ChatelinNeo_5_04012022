@@ -167,8 +167,7 @@ const validateName = (id, msg)=>{
     }
     return 0;
 }
-
-if(window.location.pathname == "/cart.html"){
+if(document.title.toLowerCase() === "cart"){
     Run();
 
     let order = document.getElementsByClassName("cart__order__form");
@@ -183,7 +182,8 @@ if(window.location.pathname == "/cart.html"){
         validateName("email", "Email invalide");
     }
         
-    order[0][5].onclick = ()=>{
+    order[0][5].onclick = (event)=>{
+        event.preventDefault();
         if(
             validateName("firstName", "Prénom invalide")+
             validateName("lastName", "Nom invalide")+
@@ -195,14 +195,10 @@ if(window.location.pathname == "/cart.html"){
             let inputAddress = document.getElementById("address");
             let inputCity = document.getElementById("city");
             let inputEmail = document.getElementById("email");
-
-            console.log(basket);
-
-            let orderId;
             
             fetch("http://localhost:3000/api/products/order", {
                 method: "POST",
-                body:{
+                body:JSON.stringify({
                     contact:{
                         firstName: inputFirstName.value,
                         lastName: inputLastName.value,
@@ -210,23 +206,21 @@ if(window.location.pathname == "/cart.html"){
                         city: inputCity.value,
                         email: inputEmail.value
                     },
-                    products: basket
-                },
+                    products: basket.map(k => k.id)})
+                ,
                 headers: {
                     "Accept": "application/json",
                     "Content-Type": "application/json"
                 }
             })
-            .then(response => console.log(response.json()))
+            .then(response => response.json())
             .then((data) => {
-                console.log(data);
-                orderId = data;
                 localStorage.clear();
+                window.location.href = `confirmation.html?orderId=${data.orderId}`
             })
             .catch((err) => {
                 console.log(err);
             });
-            window.location.href = `confirmation.html?orderId=${data}`
         }
     }
 }else{
