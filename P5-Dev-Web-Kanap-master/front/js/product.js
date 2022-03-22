@@ -48,6 +48,7 @@ getData( (data) => {
 					window.location = "cart.html";
 				}else{
 					localStorage.setItem("basket",JSON.stringify([{id:id, option:opt, quantity:qty}]));
+					window.location = "cart.html";
 				}
 			}
 

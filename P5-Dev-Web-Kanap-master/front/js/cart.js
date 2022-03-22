@@ -169,6 +169,8 @@ const validateName = (id, msg)=>{
 }
 
 if(window.location.pathname == "/cart.html"){
+    Run();
+
     let order = document.getElementsByClassName("cart__order__form");
     
     let basket = JSON.parse(localStorage.getItem("basket"));
@@ -193,10 +195,14 @@ if(window.location.pathname == "/cart.html"){
             let inputAddress = document.getElementById("address");
             let inputCity = document.getElementById("city");
             let inputEmail = document.getElementById("email");
+
+            console.log(basket);
+
+            let orderId;
             
             fetch("http://localhost:3000/api/products/order", {
                 method: "POST",
-                body: JSON.stringify({
+                body:{
                     contact:{
                         firstName: inputFirstName.value,
                         lastName: inputLastName.value,
@@ -205,7 +211,7 @@ if(window.location.pathname == "/cart.html"){
                         email: inputEmail.value
                     },
                     products: basket
-                }),
+                },
                 headers: {
                     "Accept": "application/json",
                     "Content-Type": "application/json"
@@ -214,19 +220,17 @@ if(window.location.pathname == "/cart.html"){
             .then(response => console.log(response.json()))
             .then((data) => {
                 console.log(data);
+                orderId = data;
                 localStorage.clear();
-                localStorage.setItem("orderId", data);
-                window.location.href = "confirmation.html"
             })
             .catch((err) => {
                 console.log(err);
             });
+            window.location.href = `confirmation.html?orderId=${data}`
         }
     }
 }else{
-    let orderIdFeld = document.getElementById("orderId");
-    let orderId = localStorage.getItem("orderId");
-    orderIdFeld.textContent = orderId;
+    let orderId = new URLSearchParams(window.location.search).get('orderId');
+    let orderIdField = document.getElementById("orderId");
+    orderIdField.textContent = orderId;
 }
-
-Run();
